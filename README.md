@@ -6,6 +6,8 @@ Stop letting forgotten `claude`, `codex`, `gemini-cli`, and `node` MCP-server pr
 
 > Built with SwiftUI's `MenuBarExtra` (macOS 13+). No dock icon, ~300 KB binary, polls `ps` every 3 seconds.
 
+![AgentBar menu-bar popover showing running Claude, Codex, and MCP processes](docs/screenshot.png)
+
 ## Features
 
 - **Live menu bar count** of running AI agent processes
