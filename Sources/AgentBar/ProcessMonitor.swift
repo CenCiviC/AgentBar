@@ -19,16 +19,41 @@ enum AgentKind: String, CaseIterable, Hashable {
         }
     }
 
-    /// Substrings (lowercase) checked against the process command line.
-    var patterns: [String] {
+    /// Strict matching rules so we don't false-positive on apps like
+    /// /Applications/CodexBar.app whose names merely *contain* "codex".
+    /// A process matches if argv[0]'s basename equals one of `basenames`,
+    /// or if the full command contains one of `commandSubstrings`.
+    var rules: MatchRules {
         switch self {
-        case .claude: return ["claude", "anthropic"]
-        case .codex:  return ["codex", "openai/codex", "@openai/codex"]
-        case .gemini: return ["gemini-cli", "@google/gemini", "google/gemini-cli", "/gemini ", " gemini "]
-        case .mcp:    return ["mcp-server", "@modelcontextprotocol", "mcp-"]
-        case .other:  return []
+        case .claude:
+            return MatchRules(
+                basenames: ["claude", "claude-code"],
+                commandSubstrings: ["@anthropic-ai/claude-code", "anthropic-ai/claude"]
+            )
+        case .codex:
+            return MatchRules(
+                basenames: ["codex"],
+                commandSubstrings: ["@openai/codex", "openai/codex"]
+            )
+        case .gemini:
+            return MatchRules(
+                basenames: ["gemini", "gemini-cli"],
+                commandSubstrings: ["@google/gemini", "google/gemini-cli"]
+            )
+        case .mcp:
+            return MatchRules(
+                basenames: [],
+                commandSubstrings: ["mcp-server", "@modelcontextprotocol", "mcp-"]
+            )
+        case .other:
+            return MatchRules(basenames: [], commandSubstrings: [])
         }
     }
+}
+
+struct MatchRules {
+    let basenames: [String]
+    let commandSubstrings: [String]
 }
 
 struct AgentProcess: Identifiable, Hashable {
@@ -98,11 +123,11 @@ final class ProcessMonitor: ObservableObject {
 
             let stat = parts[3]
             let command = parts[4...].joined(separator: " ")
-            let haystack = " " + command.lowercased() + " "
-
-            guard let kind = matchKind(in: haystack) else { continue }
-
             let argv0 = parts[4]
+            let argv0Basename = URL(fileURLWithPath: argv0).lastPathComponent.lowercased()
+
+            guard let kind = matchKind(argv0Basename: argv0Basename, command: command.lowercased()) else { continue }
+
             let displayName = friendlyName(executable: argv0, command: command)
             found.append(AgentProcess(
                 id: pid,
@@ -119,9 +144,11 @@ final class ProcessMonitor: ObservableObject {
         self.lastRefresh = .now
     }
 
-    private func matchKind(in haystack: String) -> AgentKind? {
+    private func matchKind(argv0Basename: String, command: String) -> AgentKind? {
         for kind in detectableKinds {
-            if kind.patterns.contains(where: { haystack.contains($0) }) {
+            let rules = kind.rules
+            if rules.basenames.contains(argv0Basename) { return kind }
+            if rules.commandSubstrings.contains(where: { command.contains($0) }) {
                 return kind
             }
         }

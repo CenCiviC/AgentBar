@@ -164,6 +164,7 @@ struct ProcessRow: View {
                     .truncationMode(.middle)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            CopyButton(text: clipboardText, tooltip: "Copy process info\nPaste into an AI assistant to ask for an ETA\nor what it's likely doing.")
             KillButton(
                 label: "Quit",
                 systemImage: "door.left.hand.open",
@@ -204,6 +205,54 @@ struct ProcessRow: View {
         let cpu = String(format: "%.1f", process.cpu)
         let mem = String(format: "%.0f", process.memMB)
         return "PID \(process.id) · \(cpu)% CPU · \(mem) MB"
+    }
+
+    private var clipboardText: String {
+        let cpu = String(format: "%.1f", process.cpu)
+        let mem = String(format: "%.0f", process.memMB)
+        return """
+        Agent: \(process.kind.rawValue)
+        Name: \(process.name)
+        PID: \(process.id)
+        CPU: \(cpu)%
+        Memory: \(mem) MB
+        Zombie: \(process.isZombie ? "yes" : "no")
+        Command: \(process.command)
+        """
+    }
+}
+
+struct CopyButton: View {
+    let text: String
+    let tooltip: String
+
+    @State private var hovering = false
+    @State private var copied = false
+
+    var body: some View {
+        Button(action: copy) {
+            Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                .font(.caption)
+                .frame(width: 14, height: 14)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
+                .background(Color.gray.opacity(hovering ? 0.25 : 0.12))
+                .foregroundStyle(copied ? Color.green : Color.secondary)
+                .cornerRadius(5)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .help(tooltip)
+    }
+
+    private func copy() {
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(text, forType: .string)
+        copied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            copied = false
+        }
     }
 }
 
