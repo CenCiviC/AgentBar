@@ -83,10 +83,16 @@ The UI picks it up automatically.
 ## Development
 
 ```bash
-swift build          # debug build
-swift run            # run from terminal (Ctrl-C to stop)
+./Scripts/dev.sh     # build debug binary and run (kills existing instance first)
 ./Scripts/lint.sh    # run SwiftLint
 ./Scripts/format.sh  # run SwiftFormat
+```
+
+To build a local release bundle without publishing:
+
+```bash
+./Scripts/build-app.sh
+open build/AgentBar.app
 ```
 
 ## Release
@@ -107,11 +113,6 @@ Bumps `version.env`, commits, builds, zips, and publishes to GitHub Releases.
 4. Open a PR with a short description and a screenshot for UI changes
 
 Bug reports and feature requests are welcome — open an issue.
-
-## Inspired by
-
-- [codexbar.app](https://codexbar.app/) — a Codex-focused menu bar app
-- macOS power-user utilities like `htop`, `Stats`, `iStat Menus`
 
 ## License
 
