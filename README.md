@@ -6,94 +6,107 @@ Stop letting forgotten `claude`, `codex`, `gemini-cli`, and `node` MCP-server pr
 
 > Built with SwiftUI's `MenuBarExtra` (macOS 13+). No dock icon, ~300 KB binary, polls `ps` every 3 seconds.
 
-![AgentBar menu-bar popover showing running Claude, Codex, and MCP processes](docs/screenshot.png)
+![AgentBar menu-bar popover showing running Claude, Codex, and MCP processes](docs/screenshot_agents.png)
 
 ## Features
 
+### Process Monitoring
 - **Live menu bar count** of running AI agent processes
 - **Per-agent grouping** — separate counts for Claude / Codex / Gemini / MCP
-- **Per-process detail** — PID, CPU%, memory, full command on hover
-- **Zombie detection** — flags `Z`-state processes
-- **Hover-to-reveal kill buttons** — SIGTERM (orange) or SIGKILL (red)
-- **Bulk actions** — kill all, or kill all of one agent type
+- **Per-process detail** — PID, CPU%, memory usage, terminal location
+- **Zombie detection** — flags `Z`-state processes with a red badge
+- **Kill button** — SIGTERM per process, with graceful fallback to SIGKILL if still alive after 3 seconds
+- **Bulk kill** — kill all processes at once, or all of one agent type
+- **Copy process info** — one-click copy of agent/PID/CPU/command for pasting into an AI assistant
+
+### Terminal Integration
+- **Click to focus** — tap a process row to jump to its terminal window or tmux pane
+- **tmux support** — detects session/window/pane, flashes the pane on focus, groups processes by tmux window in the UI
+- **MCP parent detection** — MCP server rows show which agent owns them and focus that agent's terminal on click
+
+### Ports Tab
+- **Listening ports** — shows all processes with open TCP/UDP ports (via `lsof`)
+- **Agent badge** — highlights ports held by recognized AI agents
+- **Hide system ports** — filters out known macOS daemons (sshd, mDNSResponder, sharingd, etc.)
+- **Kill by port** — terminate the process holding a given port; system process kills require confirmation
+
+### Settings & Display
+- **Sort order** — CPU usage, most recent PID, or tmux window/pane
+- **Settings window** — native macOS settings UI with tabs (General, Ports, About)
 - **No dock icon** — proper background `LSUIElement` app
 
 ## Install
 
+### One-line install (recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CenCiviC/AgentBar/main/install.sh | bash
+```
+
+Installs to `~/Applications/AgentBar.app` and launches the app. Run the same command again to update.
+
 ### Build from source
 
-Requires macOS 13+, Xcode 15+ (or Swift 5.9+ command-line tools).
+Requires macOS 13+, Swift 5.9+ command-line tools (or Xcode 15+).
 
 ```bash
-git clone https://github.com/<you>/AgentBar.git
+git clone https://github.com/CenCiviC/AgentBar.git
 cd AgentBar
-./build-app.sh
-open AgentBar.app
+./Scripts/build-app.sh
+open build/AgentBar.app
 ```
 
-To make it launch at login, drag `AgentBar.app` to **System Settings → General → Login Items**.
+### Launch at login
 
-### Development
-
-```bash
-swift run -c release
-```
-
-The app appears in the menu bar; `Ctrl-C` in the terminal to stop.
+Drag `AgentBar.app` to **System Settings → General → Login Items**.
 
 ## How it works
 
-AgentBar runs `ps -axo pid,pcpu,rss,stat,comm,command` every 3 seconds and matches each process's command line against a small set of patterns:
+AgentBar runs `ps -axo pid,pcpu,rss,stat,comm,command` every 3 seconds and matches each process against pattern rules:
 
-| Agent  | Match patterns |
-|--------|----------------|
-| Claude | `claude`, `anthropic` |
-| Codex  | `codex`, `openai/codex`, `@openai/codex` |
-| Gemini | `gemini-cli`, `@google/gemini`, `google/gemini-cli` |
-| MCP    | `mcp-server`, `@modelcontextprotocol`, `mcp-` |
+| Agent  | Basenames | Command substrings |
+|--------|-----------|-------------------|
+| Claude | `claude`, `claude-code` | `@anthropic-ai/claude-code`, `anthropic-ai/claude` |
+| Codex  | `codex` | `@openai/codex`, `openai/codex` |
+| Gemini | `gemini`, `gemini-cli` | `@google/gemini`, `google/gemini-cli` |
+| MCP    | — | `mcp-server`, `@modelcontextprotocol`, `mcp-` |
 
-Edit `Sources/AgentBar/ProcessMonitor.swift` to add new agents or tune patterns — each kind is one case in the `AgentKind` enum.
+Port scanning runs `lsof -nP -iTCP -iUDP -sTCP:LISTEN` concurrently and cross-references PIDs with the agent process list.
 
 ## Adding a new agent
 
-1. Add a case to `AgentKind` in `ProcessMonitor.swift`
-2. Pick a `color` for it
-3. Add match `patterns`
-4. Add it to `detectableKinds`
+1. Add a case to `AgentKind` in `Sources/AgentBar/Models/AgentKind.swift`
+2. Set a `color` and `rules` (basenames + commandSubstrings)
 
-That's it — the UI picks it up automatically.
+The UI picks it up automatically.
 
-## Roadmap
+## Development
 
-- [ ] Settings window (toggle agents, configure patterns, polling interval)
-- [ ] Parse Claude Code session logs (`~/.claude/projects/*/*.jsonl`) to show token use and current model
-- [ ] "Reveal logs in Finder" / "Open in Terminal" per row
-- [ ] Launch at login via `SMAppService` (no manual Login Items step)
-- [ ] Notifications when an agent crashes or exceeds a token threshold
-- [ ] Universal binary + signed/notarized release for direct download
-- [ ] Homebrew cask
+```bash
+swift build          # debug build
+swift run            # run from terminal (Ctrl-C to stop)
+./Scripts/lint.sh    # run SwiftLint
+./Scripts/format.sh  # run SwiftFormat
+```
 
-PRs welcome — see **Contributing** below.
+## Release
+
+```bash
+./Scripts/release.sh patch   # 1.0.0 → 1.0.1
+./Scripts/release.sh minor   # 1.0.0 → 1.1.0
+./Scripts/release.sh major   # 1.0.0 → 2.0.0
+```
+
+Bumps `version.env`, commits, builds, zips, and publishes to GitHub Releases.
 
 ## Contributing
 
-This is a small project; structure is intentionally minimal:
-
-```
-Sources/AgentBar/
-├── AgentBarApp.swift     # @main + MenuBarExtra scene
-├── ProcessMonitor.swift  # ps polling, agent kind matching, kill helpers
-└── ContentView.swift     # popover UI
-```
-
-To contribute:
-
 1. Fork and create a feature branch
-2. Run `swift build` to make sure it still compiles
-3. Test manually by running `swift run -c release` and verifying the menu bar UI behaves as expected
-4. Open a PR with a short description of the change and a screenshot if it's a UI change
+2. Run `swift build` to confirm it compiles
+3. Test by running `swift run` and verifying the menu bar UI
+4. Open a PR with a short description and a screenshot for UI changes
 
-Bug reports and feature requests are very welcome — open an issue.
+Bug reports and feature requests are welcome — open an issue.
 
 ## Inspired by
 
