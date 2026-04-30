@@ -61,7 +61,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if pop.isShown {
             pop.performClose(sender)
         } else {
+            NSApp.activate(ignoringOtherApps: true)
             pop.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            pop.contentViewController?.view.window?.makeKey()
         }
     }
 
