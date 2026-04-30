@@ -6,6 +6,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_DIR}"
 
+# shellcheck source=../version.env
+source version.env
+
 APP_NAME="AgentBar"
 BUILD_DIR=".build/release"
 APP_BUNDLE="${PROJECT_DIR}/build/${APP_NAME}.app"
@@ -34,9 +37,9 @@ cat > "${APP_BUNDLE}/Contents/Info.plist" <<EOF
     <key>CFBundleDisplayName</key>
     <string>${APP_NAME}</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>${BUILD}</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.0</string>
+    <string>${VERSION}</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>LSMinimumSystemVersion</key>

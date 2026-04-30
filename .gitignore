@@ -32,6 +32,7 @@ AgentBar.app/
 
 # Secrets / local config
 *.env
+!version.env
 *.local
 
 # macOS
