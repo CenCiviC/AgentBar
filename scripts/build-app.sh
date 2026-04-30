@@ -2,11 +2,13 @@
 # Builds AgentBar.app — a proper macOS app bundle from the SPM executable.
 set -euo pipefail
 
-cd "$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_DIR}"
 
 APP_NAME="AgentBar"
 BUILD_DIR=".build/release"
-APP_BUNDLE="${APP_NAME}.app"
+APP_BUNDLE="${SCRIPT_DIR}/${APP_NAME}.app"
 
 echo "==> Building release binary"
 swift build -c release
