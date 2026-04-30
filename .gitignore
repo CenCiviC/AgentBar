@@ -1,6 +1,38 @@
+# IDE / editor
 .vscode/
+xcuserdata/
+.swiftpm/xcode/xcshareddata/
+
+# Swift Package Manager
 .build/
 .swiftpm/
-Package.resolved
+.swiftpm-cache/
+# Package.resolved — uncomment to ignore lock file
+# Package.resolved
+
+# Build artifacts
+build/
+DerivedData/
 *.xcodeproj
-AgentBar.app
+
+# Bundles & release artifacts
+# Main app bundle (any variation)
+AgentBar.app/
+AgentBar *.app/
+AgentBar_*.app/
+AgentBar.app/
+# Release artifacts
+*.ipa
+*.dSYM*
+*.zip
+*.dmg
+*.pkg
+*.tar.gz
+*.tgz
+
+# Secrets / local config
+*.env
+*.local
+
+# macOS
+.DS_Store

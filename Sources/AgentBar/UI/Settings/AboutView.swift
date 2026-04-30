@@ -20,12 +20,12 @@ struct AboutView: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color(red: 0.25, green: 0.55, blue: 1.0),
-                                         Color(red: 0.1, green: 0.35, blue: 0.85)],
+                                colors: [
+                                    Color(red: 0.25, green: 0.55, blue: 1.0),
+                                    Color(red: 0.1, green: 0.35, blue: 0.85),
+                                ],
                                 startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                                endPoint: .bottomTrailing))
                         .frame(width: 80, height: 80)
                     Image(systemName: "cpu")
                         .font(.system(size: 38, weight: .medium))
@@ -33,35 +33,26 @@ struct AboutView: View {
                 }
                 .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
 
-                Text("AgentBar")
-                    .font(.title.bold())
-
-                Text("Version \(version) (\(build))")
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
+                Text("AgentBar").font(.title.bold())
+                Text("Version \(self.version) (\(self.build))").foregroundStyle(.secondary).font(.subheadline)
             }
             .padding(.top, 28)
             .padding(.bottom, 20)
 
-            Divider()
-                .padding(.horizontal, 40)
+            Divider().padding(.horizontal, 40)
 
             VStack(spacing: 4) {
-                LinkRow(icon: "chevron.left.forwardslash.chevron.right", label: "GitHub", url: githubURL)
-                LinkRow(icon: "envelope", label: "Email", url: URL(string: "mailto:\(email)")!)
+                LinkRow(icon: "chevron.left.forwardslash.chevron.right", label: "GitHub", url: self.githubURL)
+                LinkRow(icon: "envelope", label: "Email", url: URL(string: "mailto:\(self.email)")!)
             }
             .padding(.vertical, 16)
 
-            Divider()
-                .padding(.horizontal, 40)
+            Divider().padding(.horizontal, 40)
 
             VStack(spacing: 12) {
-                Button("Check for Updates...") {
-                    NSWorkspace.shared.open(releasesURL)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-
+                Button("Check for Updates...") { NSWorkspace.shared.open(self.releasesURL) }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                 Text("© 2026 CenCiviC. MIT License.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
@@ -79,11 +70,10 @@ private struct LinkRow: View {
     let url: URL
 
     var body: some View {
-        Link(destination: url) {
+        Link(destination: self.url) {
             HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .frame(width: 18)
-                Text(label)
+                Image(systemName: self.icon).frame(width: 18)
+                Text(self.label)
             }
             .font(.system(size: 13))
             .padding(.vertical, 6)

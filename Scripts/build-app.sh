@@ -8,7 +8,7 @@ cd "${PROJECT_DIR}"
 
 APP_NAME="AgentBar"
 BUILD_DIR=".build/release"
-APP_BUNDLE="${SCRIPT_DIR}/${APP_NAME}.app"
+APP_BUNDLE="${PROJECT_DIR}/build/${APP_NAME}.app"
 
 echo "==> Building release binary"
 swift build -c release

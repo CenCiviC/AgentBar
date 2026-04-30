@@ -1,0 +1,28 @@
+disabled_rules:
+  - trailing_whitespace
+  - line_length
+  - todo
+  - trailing_comma
+  - large_tuple
+
+opt_in_rules:
+  - empty_count
+  - empty_string
+  - first_where
+  - sorted_imports
+  - unneeded_parentheses_in_closure_argument
+
+identifier_name:
+  min_length:
+    warning: 1
+    error: 1
+  max_length:
+    warning: 60
+    error: 80
+
+excluded:
+  - .build
+  - Package.swift
+
+analyzer_rules:
+  - unused_import
