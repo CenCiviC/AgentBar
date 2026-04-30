@@ -9,6 +9,7 @@ struct ContentView: View {
     @EnvironmentObject var monitor: ProcessMonitor
     @AppStorage("hiddenKinds") private var hiddenKindsRaw: String = ""
     @AppStorage("sortOrder") private var sortOrderRaw: String = ProcessSortOrder.cpu.rawValue
+    @AppStorage("hideSystemPorts") private var hideSystemPorts: Bool = true
     @State private var selectedTab: AppTab = .processes
 
     private var sortOrder: ProcessSortOrder {
@@ -23,6 +24,11 @@ struct ContentView: View {
         var kinds = hiddenKinds
         if kinds.contains(kind) { kinds.remove(kind) } else { kinds.insert(kind) }
         hiddenKindsRaw = kinds.map(\.rawValue).joined(separator: ",")
+    }
+
+    private var filteredPorts: [PortInfo] {
+        guard hideSystemPorts else { return monitor.ports }
+        return monitor.ports.filter { !macOSSystemProcessNames.contains($0.processName) }
     }
 
     private func toggleSortOrder() {
@@ -158,13 +164,16 @@ struct ContentView: View {
     }
 
     private var tabBar: some View {
-        Picker("", selection: $selectedTab) {
-            Text("Agents \(monitor.processes.count)").tag(AppTab.processes)
-            Text("Ports \(monitor.ports.count)").tag(AppTab.ports)
+        HStack(spacing: 0) {
+            TabBarButton(title: "Agents", isSelected: selectedTab == .processes) {
+                selectedTab = .processes
+            }
+            TabBarButton(title: "Ports", isSelected: selectedTab == .ports) {
+                selectedTab = .ports
+            }
+            Spacer()
         }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 8)
     }
 
     private var kindSummary: some View {
@@ -261,7 +270,7 @@ struct ContentView: View {
 
     @ViewBuilder
     private var portsContent: some View {
-        if monitor.ports.isEmpty {
+        if filteredPorts.isEmpty {
             VStack(spacing: 8) {
                 Image(systemName: "network.slash")
                     .font(.title)
@@ -269,12 +278,17 @@ struct ContentView: View {
                 Text("No listening ports")
                     .foregroundStyle(.secondary)
                     .font(.callout)
+                if hideSystemPorts && !monitor.ports.isEmpty {
+                    Text("(\(monitor.ports.count - filteredPorts.count) system ports hidden)")
+                        .foregroundStyle(.tertiary)
+                        .font(.caption)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(monitor.ports) { port in
+                    ForEach(filteredPorts) { port in
                         PortRow(port: port)
                         Divider()
                     }
@@ -501,6 +515,34 @@ struct PortRow: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
+    }
+}
+
+struct TabBarButton: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? Color.primary : Color.secondary)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 8)
+                .overlay(alignment: .bottom) {
+                    if isSelected {
+                        Rectangle()
+                            .fill(Color.primary)
+                            .frame(height: 2)
+                            .cornerRadius(1)
+                    }
+                }
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 4)
     }
 }
 

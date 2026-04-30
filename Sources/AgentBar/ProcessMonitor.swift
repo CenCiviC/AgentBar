@@ -66,6 +66,23 @@ struct PortInfo: Identifiable {
     let agentKind: AgentKind?
 }
 
+// Known macOS system daemons that appear in lsof TCP LISTEN output.
+// Used to optionally hide system-owned ports from the Ports tab.
+let macOSSystemProcessNames: Set<String> = [
+    "rapportd", "remoted", "screensharingd", "sharingd",
+    "mDNSResponder", "netbiosd", "smbd", "nmbd", "sshd",
+    "configd", "launchd", "UserEventAgent", "AirPlayXPCHelper",
+    "mediaremoted", "apsd", "imagent", "CommCenter", "avconferenced",
+    "coreduetd", "symptomsd", "nesessionmanager", "networkd_privilege",
+    "cloudd", "bird", "nsurlsessiond", "IMDPersistenceAgent",
+    "IMTransferAgent", "lsd", "secd", "trustd", "distnoted",
+    "ControlCenter", "assistantd", "callservicesd", "contactsd",
+    "ctkd", "cupsd", "photoanalysisd", "routined", "remindd",
+    "locationd", "tccd", "sandboxd", "timed", "watchdogd",
+    "akd", "findmylocated", "parsecd", "bookdatastored",
+    "CalendarAgent", "AddressBookSourceSync", "CoreLocationAgent",
+]
+
 struct AgentProcess: Identifiable, Hashable {
     let id: Int32
     let kind: AgentKind
